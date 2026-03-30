@@ -16,15 +16,35 @@ const cards = [
     href: "/patient/reports",
   },
   {
-    title: "Medical History",
-    desc: "Review your health history records.",
-    href: "/patient/history",
-  },
-  {
     title: "Prescriptions",
     desc: "View your prescriptions issued by doctors.",
     href: "/patient/prescriptions",
   },
+  {
+    title: "Search Doctors",
+    desc: "Find doctors by specialty and book appointments.",
+    href: "/appointments/search",
+  },
+  {
+    title: "My Appointments",
+    desc: "View and manage your booked appointments.",
+    href: "/appointments/my",
+  },
+  {
+  title: "Telemedicine Sessions",
+  desc: "Join your scheduled online consultations.",
+  href: "/telemedicine/patient",
+},
+{
+  title: "Payments",
+  desc: "View your consultation payment history.",
+  href: "/patient/payments",
+},
+{
+  title: "Notifications",
+  desc: "View SMS and email notification history.",
+  href: "/patient/notifications",
+}
 ];
 
 export default function PatientDashboard() {

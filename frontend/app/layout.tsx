@@ -1,21 +1,27 @@
+"use client";
+
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-
-export const metadata = {
-  title: "Smart Healthcare Platform",
-  description: "Healthcare appointment and telemedicine platform",
-};
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body>
-        <Navbar />
-        <main>{children}</main>
+        <PayPalScriptProvider
+          options={{
+            clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
+            currency: "USD",
+            intent: "capture",
+          }}
+        >
+          <Navbar />
+          <main>{children}</main>
+        </PayPalScriptProvider>
       </body>
     </html>
   );

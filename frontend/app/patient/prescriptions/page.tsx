@@ -1,34 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PATIENT_URL, getAuthHeaders } from "@/lib/api";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PatientSidebar from "@/components/PatientSidebar";
+import { DOCTOR_URL, getAuthHeaders } from "@/lib/api";
 
 type Prescription = {
+  _id: string;
+  appointmentId: string;
   doctorName: string;
-  medication: string;
-  dosage: string;
+  diagnosis: string;
+  medicines: string;
   instructions: string;
-  issuedAt: string;
+  notes: string;
+  createdAt: string;
 };
 
-export default function PrescriptionsPage() {
+export default function PatientPrescriptionsPage() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [message, setMessage] = useState("");
 
   const loadPrescriptions = async () => {
     try {
-      const res = await fetch(`${PATIENT_URL}/api/patient/prescriptions`, {
+      const res = await fetch(`${DOCTOR_URL}/api/doctor/prescriptions/patient`, {
         headers: getAuthHeaders(),
       });
 
       const data = await res.json();
 
-      if (res.ok) setPrescriptions(data.prescriptions || []);
-      else setMessage(data.message || "Failed to load prescriptions");
+      if (res.ok) {
+        setPrescriptions(data.prescriptions || []);
+      } else {
+        setMessage(data.message || "Failed to load prescriptions");
+      }
     } catch {
-      setMessage("Could not connect to patient service");
+      setMessage("Could not connect to doctor service");
     }
   };
 
@@ -42,7 +48,9 @@ export default function PrescriptionsPage() {
         <PatientSidebar />
 
         <section className="rounded-3xl bg-white border shadow-sm p-6">
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">Prescriptions</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-4">
+            My Prescriptions
+          </h1>
 
           {message && (
             <p className="mb-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
@@ -52,17 +60,16 @@ export default function PrescriptionsPage() {
 
           <div className="space-y-4">
             {prescriptions.length === 0 ? (
-              <p className="text-slate-500">No prescriptions available.</p>
+              <p className="text-slate-500">No prescriptions found.</p>
             ) : (
-              prescriptions.map((item, index) => (
-                <div key={index} className="rounded-2xl border p-4">
-                  <h3 className="font-semibold text-slate-900">{item.medication}</h3>
-                  <p className="text-slate-600 mt-1">Dosage: {item.dosage}</p>
-                  <p className="text-slate-600">Doctor: {item.doctorName}</p>
-                  <p className="text-slate-600">Instructions: {item.instructions}</p>
-                  <p className="text-xs text-slate-400 mt-2">
-                    {new Date(item.issuedAt).toLocaleString()}
-                  </p>
+              prescriptions.map((prescription) => (
+                <div key={prescription._id} className="rounded-2xl border p-4">
+                  <p><strong>Doctor:</strong> {prescription.doctorName}</p>
+                  <p><strong>Diagnosis:</strong> {prescription.diagnosis}</p>
+                  <p><strong>Medicines:</strong> {prescription.medicines}</p>
+                  <p><strong>Instructions:</strong> {prescription.instructions}</p>
+                  <p><strong>Notes:</strong> {prescription.notes || "-"}</p>
+                  <p><strong>Date:</strong> {new Date(prescription.createdAt).toLocaleString()}</p>
                 </div>
               ))
             )}
