@@ -4,7 +4,7 @@ import { corsHeaders } from "@/lib/cors";
 import Appointment from "@/models/Appointment";
 
 type StatusBody = {
-  status?: "accepted" | "rejected" | "completed";
+  status?: "pending" | "accepted" | "rejected" | "cancelled" | "completed";
   notes?: string;
 };
 
@@ -35,9 +35,9 @@ export async function PUT(
       );
     }
 
-    if (decoded.role !== "doctor") {
+    if (decoded.role !== "doctor" && decoded.role !== "admin") {
       return Response.json(
-        { message: "Only doctors can update appointment status" },
+        { message: "Only doctor or admin can update appointment status" },
         { status: 403, headers: corsHeaders() }
       );
     }
@@ -47,15 +47,12 @@ export async function PUT(
 
     if (!body.status) {
       return Response.json(
-        { message: "status is required" },
+        { message: "Status is required" },
         { status: 400, headers: corsHeaders() }
       );
     }
 
-    const appointment = await Appointment.findOne({
-      _id: id,
-      doctorId: decoded.userId,
-    });
+    const appointment = await Appointment.findById(id);
 
     if (!appointment) {
       return Response.json(
@@ -64,47 +61,54 @@ export async function PUT(
       );
     }
 
-    if (appointment.status === "cancelled") {
+    if (decoded.role === "doctor" && appointment.doctorId !== decoded.userId) {
       return Response.json(
-        { message: "Cancelled appointments cannot be updated" },
-        { status: 400, headers: corsHeaders() }
-      );
-    }
-
-    if (appointment.status === "completed") {
-      return Response.json(
-        { message: "Completed appointments cannot be updated" },
-        { status: 400, headers: corsHeaders() }
+        { message: "Not authorized to update this appointment" },
+        { status: 403, headers: corsHeaders() }
       );
     }
 
     appointment.status = body.status;
-    appointment.notes = body.notes || "";
+    appointment.notes = body.notes || appointment.notes;
+
     await appointment.save();
+
+    const notificationServiceUrl =
+      process.env.NOTIFICATION_SERVICE_URL || "http://notification-service:3007";
 
     if (body.status === "accepted") {
       try {
-        await fetch("http://localhost:3007/api/notifications/send-accepted", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            patient: {
-              userId: appointment.patientId,
-              name: appointment.patientName,
-              email: appointment.patientEmail,
+        const response = await fetch(
+          `${notificationServiceUrl}/api/notifications/send-accepted`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-            doctor: {
-              userId: appointment.doctorId,
-              name: appointment.doctorName,
-              email: appointment.doctorEmail,
-            },
-            appointmentDate: appointment.appointmentDate,
-            appointmentTime: appointment.appointmentTime,
-          }),
-        });
-        console.log("Patient accepted email sent");
+            body: JSON.stringify({
+              patient: {
+                userId: appointment.patientId,
+                name: appointment.patientName,
+                email: appointment.patientEmail,
+              },
+              doctor: {
+                userId: appointment.doctorId,
+                name: appointment.doctorName,
+                email: appointment.doctorEmail,
+              },
+              appointmentDate: appointment.appointmentDate,
+              appointmentTime: appointment.appointmentTime,
+              status: appointment.status,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Accepted notification service error:", errorText);
+        } else {
+          console.log("Accepted notification sent successfully");
+        }
       } catch (error) {
         console.error("Accepted notification call failed:", error);
       }
@@ -112,25 +116,37 @@ export async function PUT(
 
     if (body.status === "completed") {
       try {
-        await fetch("http://localhost:3007/api/notifications/send-completion", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            patient: {
-              userId: appointment.patientId,
-              name: appointment.patientName,
-              email: appointment.patientEmail,
+        const response = await fetch(
+          `${notificationServiceUrl}/api/notifications/send-completion`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-            doctor: {
-              userId: appointment.doctorId,
-              name: appointment.doctorName,
-              email: appointment.doctorEmail,
-            },
-          }),
-        });
-        console.log("Patient completion email sent");
+            body: JSON.stringify({
+              patient: {
+                userId: appointment.patientId,
+                name: appointment.patientName,
+                email: appointment.patientEmail,
+              },
+              doctor: {
+                userId: appointment.doctorId,
+                name: appointment.doctorName,
+                email: appointment.doctorEmail,
+              },
+              appointmentDate: appointment.appointmentDate,
+              appointmentTime: appointment.appointmentTime,
+              status: appointment.status,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Completion notification service error:", errorText);
+        } else {
+          console.log("Completion notification sent successfully");
+        }
       } catch (error) {
         console.error("Completion notification call failed:", error);
       }

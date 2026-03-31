@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: doctor-service
+  namespace: healthcare
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: doctor-service
+  template:
+    metadata:
+      labels:
+        app: doctor-service
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: doctor-service
+          image: doctor-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3003
+              hostPort: 3003
+          env:
+            - name: NODE_ENV
+              value: "development"
+            - name: MONGO_URI
+              value: "mongodb+srv://nikeshala:nikeshala1234@cluster0.0gkxjkv.mongodb.net/doctor_db"
+            - name: JWT_SECRET
+              value: "secret@2026"

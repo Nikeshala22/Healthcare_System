@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: healthcare
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: notification-service
+          image: notification-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3007
+              hostPort: 3007
+          env:
+            - name: NODE_ENV
+              value: "development"
+            - name: MONGO_URI
+              value: "mongodb+srv://nikeshala:nikeshala1234@cluster0.0gkxjkv.mongodb.net/notification_db"
+            - name: JWT_SECRET
+              value: "secret@2026"
+            - name: EMAILJS_SERVICE_ID
+              value: "service_9clxxfa"
+            - name: EMAILJS_TEMPLATE_ID
+              value: "template_0e7v12d"
+            - name: EMAILJS_PUBLIC_KEY
+              value: "oW2MBiV8GVN-LGtMN"   
+            - name: EMAILJS_PRIVATE_KEY
+              value: "8I81JT0e0gtOa4Yea8TBU"

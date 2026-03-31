@@ -84,28 +84,40 @@ export async function POST(req: Request) {
       notes: "",
     });
 
+    const notificationServiceUrl =
+      process.env.NOTIFICATION_SERVICE_URL || "http://notification-service:3007";
+
     try {
-      await fetch("http://localhost:3007/api/notifications/send-booking", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          patient: {
-            userId: appointment.patientId,
-            name: appointment.patientName,
-            email: appointment.patientEmail,
+      const notificationResponse = await fetch(
+        `${notificationServiceUrl}/api/notifications/send-booking`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          doctor: {
-            userId: appointment.doctorId,
-            name: appointment.doctorName,
-            email: appointment.doctorEmail,
-          },
-          appointmentDate: appointment.appointmentDate,
-          appointmentTime: appointment.appointmentTime,
-        }),
-      });
-      console.log("Doctor booking email notification sent");
+          body: JSON.stringify({
+            patient: {
+              userId: appointment.patientId,
+              name: appointment.patientName,
+              email: appointment.patientEmail,
+            },
+            doctor: {
+              userId: appointment.doctorId,
+              name: appointment.doctorName,
+              email: appointment.doctorEmail,
+            },
+            appointmentDate: appointment.appointmentDate,
+            appointmentTime: appointment.appointmentTime,
+          }),
+        }
+      );
+
+      if (!notificationResponse.ok) {
+        const errorText = await notificationResponse.text();
+        console.error("Notification service responded with error:", errorText);
+      } else {
+        console.log("Doctor booking email notification sent");
+      }
     } catch (error) {
       console.error("Booking notification call failed:", error);
     }

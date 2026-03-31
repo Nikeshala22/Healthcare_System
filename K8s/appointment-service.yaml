@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appointment-service
+  namespace: healthcare
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appointment-service
+  template:
+    metadata:
+      labels:
+        app: appointment-service
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: appointment-service
+          image: appointment-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3004
+              hostPort: 3004
+          env:
+            - name: NODE_ENV
+              value: "development"
+            - name: MONGO_URI
+              value: "mongodb+srv://nikeshala:nikeshala1234@cluster0.0gkxjkv.mongodb.net/appointment_db"
+            - name: JWT_SECRET
+              value: "secret@2026"

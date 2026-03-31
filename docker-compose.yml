@@ -1,0 +1,123 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    working_dir: /app
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - auth-service
+      - patient-service
+      - doctor-service
+      - appointment-service
+      - telemedicine-service
+      - payment-service
+      - notification-service
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "3001:3001"
+    working_dir: /app
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ./auth-service/.env
+
+  patient-service:
+    build:
+      context: ./patient-service
+      dockerfile: Dockerfile
+    container_name: patient-service
+    ports:
+      - "3002:3002"
+    working_dir: /app
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ./patient-service/.env
+
+  doctor-service:
+    build:
+      context: ./doctor-service
+      dockerfile: Dockerfile
+    container_name: doctor-service
+    ports:
+      - "3003:3003"
+    working_dir: /app
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ./doctor-service/.env
+
+  appointment-service:
+    build:
+      context: ./appointment-service
+      dockerfile: Dockerfile
+    container_name: appointment-service
+    ports:
+      - "3004:3004"
+    working_dir: /app
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3007
+    env_file:
+      - ./appointment-service/.env
+    depends_on:
+      - notification-service
+
+  telemedicine-service:
+    build:
+      context: ./telemedicine-service
+      dockerfile: Dockerfile
+    container_name: telemedicine-service
+    ports:
+      - "3005:3005"
+    working_dir: /app
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ./telemedicine-service/.env
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "3006:3006"
+    working_dir: /app
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ./payment-service/.env
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "3007:3007"
+    working_dir: /app
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ./notification-service/.env

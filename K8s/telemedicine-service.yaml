@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemedicine-service
+  namespace: healthcare
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telemedicine-service
+  template:
+    metadata:
+      labels:
+        app: telemedicine-service
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: telemedicine-service
+          image: telemedicine-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3005
+              hostPort: 3005
+          env:
+            - name: NODE_ENV
+              value: "development"
+            - name: MONGO_URI
+              value: "mongodb+srv://nikeshala:nikeshala1234@cluster0.0gkxjkv.mongodb.net/appointment_db"
+            - name: JWT_SECRET
+              value: "secret@2026"
